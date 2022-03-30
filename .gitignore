@@ -1,0 +1,4 @@
+*.o
+results*/
+.DS_Store
+*.pyc
