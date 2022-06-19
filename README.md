@@ -9,8 +9,8 @@ Proceedings of the 41st International Symposium on Reliable Distributed Systems 
 ## Directories
 + `data/` ([Dataset downloaded from Alibaba](https://github.com/alibaba-edu/dcbrain/tree/master/dramdata)), spans eight months, including
 	+ `mcelog.tar.gz`: the collected mcelog that describes details of DRAM errors.
-	+ `inventory.tar.gz`: the inventory log that describes the hardware configurations of used DIMMs.
-	+ `trouble_ticket.tar.gz`: the trouble tickets that describes the detailed of  server failures due to DRAM errors.
+	+ `inventory.tar.gz`: the inventory log that describes the hardware configurations of DIMMs and servers.
+	+ `trouble_ticket.tar.gz`: the trouble tickets that describes server failures due to DRAM errors.
 + `measurement/`: includes the source code of the predictable analysis of server failures due to DRAM errors.
 + `prediciton/`: includes the source code of our workflow for server failure prediction.
 
