@@ -305,26 +305,38 @@ def failure_rate_breakdown(df_res, factor):   ## Finding 7 additional
     print(factor + " failure rate breakdown: ", res)
 
 
-def failure_number_breakdown(df_res, factor):   ## Finding 7 additional
+def failure_number_breakdown(df_res, factor):   ## Finding 7 additional 
     model_population = [77670,71641,38006,514,10540,32534,15549]
     dimm_population = [35676,151988,7085,51705]
     server_population = [58161,127818,52931,7544]
     df_final = df_res.drop_duplicates('sid')
+    predictable_df = df_res[df_res['time_diff'] > pd.Timedelta(minutes=5).total_seconds()]
+    df_unpredictable = df_final[~df_final['sid'].isin(predictable_df.sid.unique())]
     res = []
+    unpredict_res = []
+    population_res = []
     idx = 0;
     if factor == "DRAM_model":
+        population_res = model_population
         for mod in ['A1','A2','B1','B2','B3','C1','C2']:
             res.append(len(df_final[df_final['DRAM_model'] == mod]))
+            unpredict_res.append(len(df_unpredictable[df_unpredictable['DRAM_model'] == mod]))
             idx = idx + 1
     elif factor == 'DIMM_number':
+        population_res = dimm_population
         for dimm in [8,12,16,24]:
             res.append(len(df_final[df_final['DIMM_number'] == dimm]))
+            unpredict_res.append(len(df_unpredictable[df_unpredictable['DIMM_number'] == dimm]))
             idx = idx + 1
     elif factor == 'server_manufacturer':
+        population_res = server_population
         for ser in ['M1','M2','M3','M4']:
             res.append(len(df_final[df_final['server_manufacturer'] == ser]))
+            unpredict_res.append(len(df_unpredictable[df_unpredictable['server_manufacturer'] == ser]))
             idx = idx + 1
+    print(factor + " pupulation: ", population_res)
     print(factor + " failure number breakdown: ", res)
+    print(factor + " unpredictabble failures: ", unpredict_res)    
 
 def read_scrubbing_analysis(df_res):  ### Finding 10
     type_index = ["ue","ce","misc"]
@@ -417,7 +429,7 @@ if __name__ == '__main__':
     frac_ce_per_component(num_ce,pd.Timedelta(minutes=5),1)
 
     hardware_configuration_impact_analysis(df_tickets_log,'DRAM_model', 0)  ## Finding 6
-    failure_rate_breakdown(df_tickets_log,'DRAM_model') ## Finding 6
+    failure_number_breakdown(df_tickets_log,'DRAM_model') ## Finding 6
 
     hardware_configuration_impact_analysis(df_tickets_log,'DIMM_number', 1)  ## Finding 7
 

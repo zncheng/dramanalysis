@@ -10,7 +10,6 @@ from imblearn.under_sampling import RandomUnderSampler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import BaggingClassifier,RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from lightgbm import LGBMClassifier
@@ -129,11 +128,6 @@ def classifier(model):
             'C': [0.01, 0.1, 1, 10],
             'gamma': [0.001, 0.01, 0.1, 1],
         }
-    elif model == 'NB':
-        ML = GaussianNB
-        hypers = {
-            'var_smoothing': [10**-i for i in range(2, 15)],
-        }
     elif model == 'RF':
         ML = RandomForestClassifier
         hypers = {
@@ -168,7 +162,7 @@ def classifier(model):
         ML = KerasClassifier(my_nn_model(), epochs=30, verbose=0)
         hypers ={}
     else:
-        raise ValueError('Currently consider LR, SVM, NB, RF, and GBDT, NN(MLP) and DNN only!')
+        raise ValueError('Currently consider LR, SVM, RF, and GBDT, MLP and DNN only!')
     return ML, hypers
 
 def hypers_space(hypers):
@@ -367,6 +361,7 @@ def exp2_single_run(model, pred_month, types):
     precision = 0
     recall = 0
     fpr = 0
+    parameter = 0
     if model == 'RF':
         for n_est in [10,50,100]:
             for maxd in [5,10, 50]:
@@ -423,9 +418,20 @@ def exp2_single_run(model, pred_month, types):
                 recall = raw[2]
                 fpr = raw[3]
     elif model == 'MLP':
-        for hid in [10,50,100]:
+        for layers in [1,3,5,10,20]:
+            neurons = {1:{1:50,2:50,3:10},2:{1:50,2:10,3:10},3:{1:10,2:10,3:50}}
             model,hyperparameters = classifier('MLP')
-            model = model(random_state=42,hidden_layer_sizes=(hid))
+            neurons_num = neurons[pred_month][types]
+            hidden_layers_parameter = (neurons_num)
+            if layers == 3:
+                hidden_layers_parameter = (neurons_num,neurons_num,neurons_num)
+            if layers == 5:
+                hidden_layers_parameter = (neurons_num,neurons_num,neurons_num,neurons_num,neurons_num)
+            if layers == 10:
+                hidden_layers_parameter = (neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num)            
+            if layers == 20:
+                hidden_layers_parameter = (neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num)            
+            model = model(random_state=42,hidden_layer_sizes=hidden_layers_parameter)
             model.fit(train_X[train_X.columns[2:]], train_y)
             y_pred=model.predict_proba(test_X)
             y_truth = copy.deepcopy(test_y)
@@ -435,6 +441,7 @@ def exp2_single_run(model, pred_month, types):
                 precision = raw[1]
                 recall = raw[2]
                 fpr = raw[3]
+                parameter = layers
     elif model == 'DNN':
         model,hyperparameters = classifier('DNN')
         model.fit(train_X[train_X.columns[2:]], train_y)
@@ -526,7 +533,6 @@ def exp3_main():
     for name, group in grouped:
         print(group.groupby('freq').mean().drop(columns={'month'}))
     return res_df
-exp3_main().to_csv('./result/exp3_V2.csv')
 
 def exp4_single_run(pred_month, types):
     #print(len(features), pred_month, types)

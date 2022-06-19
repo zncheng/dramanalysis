@@ -3,8 +3,8 @@ The repository includes the source code of measurement for server failures due t
 
 ## Publication
 Zhinan Cheng, Shujie Han, Patrick P. C. Lee, Xin Li, Jiongzhou Liu, and Zhan Li.
-**"An In-Depth Study Between DRAM Errors and Server Failures in Production Data Centers."**
-Proceedings of the 40th International Symposium on Reliable Distributed Systems (SRDS 2022), September 2022.
+**"An In-Depth Correlative Study Between DRAM Errors and Server Failures in Production Data Centers."**
+Proceedings of the 41st International Symposium on Reliable Distributed Systems (SRDS 2022), September 2022.
 
 ## Directories
 + `data/` ([Dataset downloaded from Alibaba](https://github.com/alibaba-edu/dcbrain/tree/master/dramdata)), spans eight months, including

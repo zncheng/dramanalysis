@@ -194,7 +194,6 @@ def counter_features_main(df, month, last_month, start, end, freq):
     small_df=apply_parallel_group(raw_df.groupby(['sid']),counter_features,64,[start,end,freq])
     final_df = pd.concat([final_df,small_df])
     return final_df
-counter_df=counter_features_main(df,1,offset_all_time('0001-01-01 00:00:00'),offset_all_time('0001-01-01 00:00:00'),offset_all_time('0001-02-01 00:00:00'),int(pd.Timedelta(minutes=5).total_seconds()))
 
 ## function for component failure classifications
 def component_split_fixed_time(df, right_bound):
@@ -391,9 +390,6 @@ def component_features_main(df, month, last_month, start, end, freq):
     small_df=apply_parallel_group(raw_df.groupby(['sid']),component_features,64,[start,end,freq])
     final_df = pd.concat([final_df,small_df])
     return final_df
-import warnings
-warnings.filterwarnings('ignore')
-component_df=component_features_main(df,1,offset_all_time('0001-01-01 00:00:00'),offset_all_time('0001-01-01 00:00:00'),offset_all_time('0001-02-01 00:00:00'),int(pd.Timedelta(minutes=5).total_seconds()))
 
 #### generate features
 def statistical_features(name, df, args):
@@ -528,10 +524,6 @@ def statistical_features_main(df, month, last_month, start, end, freq):
     small_df=apply_parallel_group(raw_df.groupby(['sid']),statistical_features,64,[start,end,freq])
     final_df = pd.concat([final_df,small_df])
     return final_df
-import warnings
-warnings.filterwarnings('ignore')
-statistical=statistical_features_main(df,1,offset_all_time('0001-01-01 00:00:00'),offset_all_time('0001-01-01 00:00:00'),offset_all_time('0001-02-01 00:00:00'),int(pd.Timedelta(minutes=5).total_seconds()))
-
 
 def one_hot_encoding_features(df):
     static_df = pd.read_csv('../data/inventory.csv')
@@ -566,5 +558,4 @@ if __name__ == '__main__':
             res_df = pd.merge([res_df, statistical_df], on = ['sid','predict_time'], how='inner')
             res_df = one_hot_encoding_features(res_df)
             res_df.to_csv('./features/features_' + freq_name[freq] + '_month_' + str(i+1) + '.csv', index=False)
-
 
