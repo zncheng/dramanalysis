@@ -33,4 +33,4 @@ Python 3: please install [numpy](https://numpy.org/) and [pandas](https://pandas
 	+ Results: `hard_erorr_mean.txt` and `soft_error_mean.txt` 
 
 ## Contact
-Please email to Zhinan Cheng (zncheng@cse.cuhk.edu.hk) if you have any questions.
+Please email to Zhinan Cheng (chingchinam@gmail.com) if you have any questions.

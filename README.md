@@ -16,5 +16,5 @@ Proceedings of the 41st International Symposium on Reliable Distributed Systems 
 + `model/`: includes all the well-trained models we used in our paper.
 
 ## Contact
-Please email to Zhinan Cheng (zncheng@cse.cuhk.edu.hk) if you have any questions.
+Please email to Zhinan Cheng (chingchinam@gamil.com) if you have any questions.
 

@@ -32,4 +32,4 @@ Python 3: please install [numpy](https://numpy.org/), [pandas](https://pandas.py
 	+ Results: `exp4.csv` 
 
 ## Contact
-Please email to Zhinan Cheng (zncheng@cse.cuhk.edu.hk) if you have any questions.
+Please email to Zhinan Cheng (chingchinam@gmail.com) if you have any questions.
