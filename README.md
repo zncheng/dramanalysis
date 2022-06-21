@@ -13,6 +13,7 @@ Proceedings of the 41st International Symposium on Reliable Distributed Systems 
 	+ `trouble_ticket.tar.gz`: the trouble tickets that describes server failures due to DRAM errors.
 + `measurement/`: includes the source code of the predictable analysis of server failures due to DRAM errors.
 + `prediciton/`: includes the source code of our workflow for server failure prediction.
++ `model/`: includes all the well-trained models we used in our paper.
 
 ## Contact
 Please email to Zhinan Cheng (zncheng@cse.cuhk.edu.hk) if you have any questions.
