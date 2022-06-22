@@ -187,8 +187,8 @@ def counter_features_main(df, month, last_month, start, end, freq):
     for sid in large_server.sid.unique()[0:1]:
         large_df = raw_df[raw_df['sid'] == sid]
         cnt_df = large_server_counter_features(sid,[start,end,freq])
-        file_name = './backup/' + str(month) + '/P1_server_' + sid
-        cnt_df.to_pickle(file_name)
+        #file_name = './backup/' + str(month) + '/P1_server_' + sid
+        #cnt_df.to_pickle(file_name)
         final_df = pd.concat([final_df,cnt_df])
     raw_df = raw_df[raw_df['sid'].isin(small_server.sid.unique())]
     small_df=apply_parallel_group(raw_df.groupby(['sid']),counter_features,64,[start,end,freq])
@@ -383,8 +383,8 @@ def component_features_main(df, month, last_month, start, end, freq):
     for sid in large_server.sid.unique()[0:1]:
         large_df = raw_df[raw_df['sid'] == sid]
         cnt_df = large_server_component_features_main(sid,[start,end,freq])
-        file_name = './backup/' + str(month) + '/P1_server_' + sid
-        cnt_df.to_pickle(file_name)
+        #file_name = './backup/' + str(month) + '/P1_server_' + sid
+        #cnt_df.to_pickle(file_name)
         final_df = pd.concat([final_df,cnt_df])
     raw_df = raw_df[raw_df['sid'].isin(small_server.sid.unique())]
     small_df=apply_parallel_group(raw_df.groupby(['sid']),component_features,64,[start,end,freq])
@@ -517,8 +517,8 @@ def statistical_features_main(df, month, last_month, start, end, freq):
     for sid in large_server.sid.unique()[0:1]:
         large_df = raw_df[raw_df['sid'] == sid]
         cnt_df = large_server_statistical_features(sid,[start,end,freq])
-        file_name = './backup/' + str(month) + '/P1_server_' + sid
-        cnt_df.to_pickle(file_name)
+        #file_name = './backup/' + str(month) + '/P1_server_' + sid
+        #cnt_df.to_pickle(file_name)
         final_df = pd.concat([final_df,cnt_df])
     raw_df = raw_df[raw_df['sid'].isin(small_server.sid.unique())]
     small_df=apply_parallel_group(raw_df.groupby(['sid']),statistical_features,64,[start,end,freq])
