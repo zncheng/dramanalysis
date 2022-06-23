@@ -6,6 +6,7 @@ import time
 import copy
 import os
 import sys
+import warnings
 
 def offset_all_time(time):
     day_of_month = {1:0,2:31,3:61,4:92,5:123,6:152,7:183,8:213,9:246}
@@ -180,15 +181,13 @@ def counter_features_main(df, month, last_month, start, end, freq):
         raw_df = pd.concat([current_df,last_df])
     raw_df = raw_df.sort_values(by=['memoryid','rankid','bankid','row','col','offset'])
     num_per_server = raw_df.groupby('sid')['memoryid'].count().reset_index(name='counter')
-    small_server = num_per_server[num_per_server['counter'] < 100000]
-    large_server = num_per_server[num_per_server['counter'] >= 100000]
+    small_server = num_per_server[num_per_server['counter'] < 1000000]
+    large_server = num_per_server[num_per_server['counter'] >= 1000000]
     final_df = pd.DataFrame()
     global large_df
-    for sid in large_server.sid.unique()[0:1]:
+    for sid in large_server.sid.unique():
         large_df = raw_df[raw_df['sid'] == sid]
         cnt_df = large_server_counter_features(sid,[start,end,freq])
-        #file_name = './backup/' + str(month) + '/P1_server_' + sid
-        #cnt_df.to_pickle(file_name)
         final_df = pd.concat([final_df,cnt_df])
     raw_df = raw_df[raw_df['sid'].isin(small_server.sid.unique())]
     small_df=apply_parallel_group(raw_df.groupby(['sid']),counter_features,64,[start,end,freq])
@@ -376,15 +375,13 @@ def component_features_main(df, month, last_month, start, end, freq):
     raw_df['channelid'] = raw_df['memoryid'].apply(lambda x: int((x % 12) / 2))
     raw_df['dimmid'] = raw_df['memoryid'].apply(lambda x : x % 2)
     num_per_server = raw_df.groupby('sid')['memoryid'].count().reset_index(name='counter')
-    small_server = num_per_server[num_per_server['counter'] < 100000]
-    large_server = num_per_server[num_per_server['counter'] >= 100000]
+    small_server = num_per_server[num_per_server['counter'] < 1000000]
+    large_server = num_per_server[num_per_server['counter'] >= 1000000]
     final_df = pd.DataFrame()
     global large_df
-    for sid in large_server.sid.unique()[0:1]:
+    for sid in large_server.sid.unique():
         large_df = raw_df[raw_df['sid'] == sid]
         cnt_df = large_server_component_features_main(sid,[start,end,freq])
-        #file_name = './backup/' + str(month) + '/P1_server_' + sid
-        #cnt_df.to_pickle(file_name)
         final_df = pd.concat([final_df,cnt_df])
     raw_df = raw_df[raw_df['sid'].isin(small_server.sid.unique())]
     small_df=apply_parallel_group(raw_df.groupby(['sid']),component_features,64,[start,end,freq])
@@ -412,7 +409,7 @@ def statistical_features(name, df, args):
             df_all['socketid'] = df_all['memoryid'].apply(lambda x: 0 if x < 12 else 1)
             df_all['channelid'] = df_all['memoryid'].apply(lambda x: int((x % 12) / 2))
             df_5m = df_all[(df_all['offset'] >= left_bound_5m) & (df_all['offset'] < right_bound)]
-            value = [name,right_bound]
+            value = [name,offset2time(right_bound)]
             for cnt_df in [df_5m]:
                 res_socket=cnt_df.groupby(by=['socketid'])['offset'].count().reset_index(name='counts')
                 res_channel=cnt_df.groupby(by=['socketid','channelid'])['offset'].count().reset_index(name='counts')
@@ -469,7 +466,7 @@ def large_server_parallel_statistical_features(name, df, args):
     df_all['channelid'] = df_all['memoryid'].apply(lambda x: int((x % 12) / 2))
     df_all['dimmid'] = df_all['memoryid'].apply(lambda x : x % 2)
     df_5m = df_all[(df_all['offset'] >= left_bound_5m) & (df_all['offset'] < right_bound)]
-    value = [sid,right_bound]
+    value = [sid,offset2time(right_bound)]
     for cnt_df in[df_5m]:
         res_socket=cnt_df.groupby(by=['socketid'])['offset'].count().reset_index(name='counts')
         res_channel=cnt_df.groupby(by=['socketid','channelid'])['offset'].count().reset_index(name='counts')
@@ -510,15 +507,13 @@ def statistical_features_main(df, month, last_month, start, end, freq):
     raw_df['socketid'] = raw_df['memoryid'].apply(lambda x: 0 if x < 12 else 1)
     raw_df['channelid'] = raw_df['memoryid'].apply(lambda x: int((x % 12) / 2))
     num_per_server = raw_df.groupby('sid')['memoryid'].count().reset_index(name='counter')
-    small_server = num_per_server[num_per_server['counter'] < 100000]
-    large_server = num_per_server[num_per_server['counter'] >= 100000]
+    small_server = num_per_server[num_per_server['counter'] < 1000000]
+    large_server = num_per_server[num_per_server['counter'] >= 1000000]
     final_df = pd.DataFrame()
     global large_df
-    for sid in large_server.sid.unique()[0:1]:
+    for sid in large_server.sid.unique():
         large_df = raw_df[raw_df['sid'] == sid]
         cnt_df = large_server_statistical_features(sid,[start,end,freq])
-        #file_name = './backup/' + str(month) + '/P1_server_' + sid
-        #cnt_df.to_pickle(file_name)
         final_df = pd.concat([final_df,cnt_df])
     raw_df = raw_df[raw_df['sid'].isin(small_server.sid.unique())]
     small_df=apply_parallel_group(raw_df.groupby(['sid']),statistical_features,64,[start,end,freq])
@@ -539,6 +534,7 @@ def one_hot_encoding_features(df):
     return df
 
 if __name__ == '__main__':
+    warnings.filterwarnings("ignore")
     try:
         os.mkdir("features/")
     except Exception as e:
@@ -550,12 +546,13 @@ if __name__ == '__main__':
     end = [offset_all_time('0001-02-01 00:00:00'),offset_all_time('0001-03-01 00:00:00'),offset_all_time('0001-04-01 00:00:00'),offset_all_time('0001-05-01 00:00:00'),offset_all_time('0001-06-01 00:00:00'),offset_all_time('0001-07-01 00:00:00'),offset_all_time('0001-08-01 00:00:00'),offset_all_time('0001-09-01 00:00:00')]
     freq_name = {pd.Timedelta(minutes=5):'5m',pd.Timedelta(minutes=30):'30m',pd.Timedelta(hours=1):'1h',pd.Timedelta(days=5):'1d'}
     for freq in [pd.Timedelta(minutes=5),pd.Timedelta(minutes=30),pd.Timedelta(hours=1),pd.Timedelta(days=5)]:
-        for i in range(8):
+        for i in [5,6,7]: ## generate features for only three testing months
             counter_df = counter_features_main(df,i+1,last_month[i],start[i],end[i], int(freq.total_seconds()))
             component_df = component_features_main(df,i+1,last_month[i],start[i],end[i],int(freq.total_seconds()))
             statistical_df = statistical_features_main(df,i+1,last_month[i],start[i],end[i],int(freq.total_seconds()))
-            res_df = pd.merge([counter_df, component_df], on = ['sid','predict_time'], how='inner')
-            res_df = pd.merge([res_df, statistical_df], on = ['sid','predict_time'], how='inner')
+            res_df = pd.DataFrame()
+            res_df = pd.merge(counter_df, component_df, on = ['sid','predict_time'], how='inner')
+            res_df = pd.merge(res_df, statistical_df, on = ['sid','predict_time'], how='inner')
             res_df = one_hot_encoding_features(res_df)
             res_df.to_csv('./features/features_' + freq_name[freq] + '_month_' + str(i+1) + '.csv', index=False)
 

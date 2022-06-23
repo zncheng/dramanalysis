@@ -5,6 +5,7 @@ import numpy as np
 import time
 import itertools
 import copy
+import pickle
 
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.preprocessing import MinMaxScaler
@@ -15,9 +16,9 @@ from sklearn.svm import SVC
 from lightgbm import LGBMClassifier
 from sklearn.metrics import confusion_matrix
 from dateutil.relativedelta import *
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Dense, Dropout, LSTM
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+#from tensorflow.keras.models import Sequential
+#from tensorflow.keras.layers import Input, Dense, Dropout, LSTM
+#from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from imblearn.under_sampling import RandomUnderSampler
 from multiprocessing import Pool
 
@@ -40,7 +41,7 @@ def offset_all_time(time):
     return offset
 
 def load_data(freq, train_months, test_months, failure_type, backtrace):
-    label = pd.read_csv('./raw_data/trouble_tickets.csv')
+    label = pd.read_csv('../data/trouble_tickets.csv')
     label['class'] = label['failure_type']
     label['failed_time_offset'] = label['failed_time'].apply(offset_all_time)
     df_train = pd.DataFrame()
@@ -171,7 +172,7 @@ def hypers_space(hypers):
     ]
 
 def evaluation_raw(y_pred, y_test,threshold = 0.5):
-    ## calcuate relative and absolute 
+    ## calcuate relative and absolute
     y_test.loc[:,'pred'] = y_pred[:,1]
     y_test.loc[:,'pred_class'] = y_test['pred'] > threshold
     all_server = y_test.drop_duplicates(['sid'],keep='last')
@@ -209,7 +210,7 @@ def evaluation_metric_V2(tp, fp, fn, tn):
             return 0,0,0,0
         else:
             return f1,precision,recall,fpr
-        
+
 def evaluate(y_pred, y_test, th):
     tp, fp, fn, tn = evaluation_raw(y_pred, y_test,threshold = th)
     f1, pr, re, fpr = evaluation_metric(tp, fp, fn, tn)
@@ -251,15 +252,15 @@ def time2class(x):
     to_min = x / 60
     if to_min <= 5:
         return 1
-    else: 
+    else:
         return 2
-    
+
 def evaluation_time(y_pred, y_test, threshold):
     y_test.loc[:,'pred'] = y_pred[:,1]
     y_test.loc[:,'pred_class'] = y_test['pred'] > threshold
     tp_server = y_test[y_test['pred_class'] & y_test['class']]
     tp_server = tp_server.sort_values(by=['sid','predict_time']).drop_duplicates('sid',keep='first')
-    label = pd.read_csv('./raw_data/trouble_tickets.csv')
+    label = pd.read_csv('../data/trouble_tickets.csv')
     label['failed_time_offset'] = label['failed_time'].apply(offset_all_time)
     tp_server['predict_time_offset']=tp_server['predict_time'].apply(offset_all_time)
     tp_server = tp_server.merge(label,on='sid',how='inner')
@@ -285,6 +286,46 @@ def features_generation(groups):
     return tmp
 
 def exp1_single_run(features, pred_month, types):
+    #print(len(features), pred_month, types)
+    if pred_month == 1:
+        df_train, df_test = load_data('5m', [6], [6], failure_type=types, backtrace='1d')
+    elif pred_month == 2:
+        df_train, df_test = load_data('5m', [7], [7], failure_type=types, backtrace='1d')
+    elif pred_month == 3:
+        df_train, df_test = load_data('5m', [8], [8], failure_type=types, backtrace='1d')
+    else:
+        print("Unkown testing month")
+
+    df_test = df_test.loc[:,features]
+    train_X, train_y, test_X, test_y = train_test_data_generation(df_train, df_test,sample_ratio=0.02)
+    best_f1 = 0
+    precision = 0
+    recall = 0
+    fpr = 0
+    feature_grp_num = 0
+
+    if len(features) == 9:
+      feature_grp_num = 1
+    elif len(features) == 22:
+      feature_grp_num = 2
+    elif len(features) == 31:
+      feature_grp_num = 3
+    else:
+      feature_grp_num = 4
+
+    name = "../model/exp1/exp1/exp1_month_" + str(pred_month) + "_types_" + str(types) + "_features_" + str(feature_grp_num)
+    model = pickle.load(open(name,'rb'))
+    y_pred=model.predict_proba(test_X)
+    y_truth = copy.deepcopy(test_y)
+    f1, raw, th = find_best_f1(y_pred,y_truth)
+    if (best_f1 < f1):
+        best_f1 = f1
+        precision = raw[1]
+        recall = raw[2]
+        fpr = raw[3]
+    return best_f1, precision, recall, fpr
+
+def exp1_single_run_from_scratch(features, pred_month, types):
     #print(len(features), pred_month, types)
     if pred_month == 1:
         df_train, df_test = load_data('5m', [1,2,3,4,5], [6], failure_type=types, backtrace='1d')
@@ -344,6 +385,38 @@ def exp1_main():
     return res_df
 
 def exp2_single_run(model, pred_month, types):
+    #print(len(features), pred_month, types)
+    if pred_month == 1:
+        df_train, df_test = load_data('5m', [6], [6], failure_type=types, backtrace='1d')
+    elif pred_month == 2:
+        df_train, df_test = load_data('5m', [7], [7], failure_type=types, backtrace='1d')
+    elif pred_month == 3:
+        df_train, df_test = load_data('5m', [8], [8], failure_type=types, backtrace='1d')
+    else:
+        print("Unkown testing month")
+
+    features = features_generation(4) ## using all groups of features
+    df_test = df_test.loc[:,features]
+    train_X, train_y, test_X, test_y = train_test_data_generation(df_train, df_test,sample_ratio=0.02)
+
+    best_f1 = 0
+    precision = 0
+    recall = 0
+    fpr = 0
+
+    name = "../model/exp2/exp2/exp2_month_" + str(pred_month) + "_types_" + str(types) + "_predictor_" + str(model)
+    model = pickle.load(open(name,'rb'))
+    y_pred=model.predict_proba(test_X)
+    y_truth = copy.deepcopy(test_y)
+    f1, raw, th = find_best_f1(y_pred,y_truth)
+    if (best_f1 < f1):
+        best_f1 = f1
+        precision = raw[1]
+        recall = raw[2]
+        fpr = raw[3]
+    return best_f1, precision, recall, fpr
+
+def exp2_single_run_from_scratch(model, pred_month, types):
     if pred_month == 1:
         df_train, df_test = load_data('5m', [1,2,3,4,5], [6], failure_type=types, backtrace='1d')
     elif pred_month == 2:
@@ -428,9 +501,9 @@ def exp2_single_run(model, pred_month, types):
             if layers == 5:
                 hidden_layers_parameter = (neurons_num,neurons_num,neurons_num,neurons_num,neurons_num)
             if layers == 10:
-                hidden_layers_parameter = (neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num)            
+                hidden_layers_parameter = (neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num)
             if layers == 20:
-                hidden_layers_parameter = (neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num)            
+                hidden_layers_parameter = (neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num,neurons_num)
             model = model(random_state=42,hidden_layer_sizes=hidden_layers_parameter)
             model.fit(train_X[train_X.columns[2:]], train_y)
             y_pred=model.predict_proba(test_X)
@@ -480,6 +553,37 @@ def exp2_main():
     return res_df
 
 def exp3_single_run(freq, pred_month, types):
+    #print(len(features), pred_month, types)
+    if pred_month == 1:
+        df_train, df_test = load_data('5m', [6], [6], failure_type=types, backtrace='1d')
+    elif pred_month == 2:
+        df_train, df_test = load_data('5m', [7], [7], failure_type=types, backtrace='1d')
+    elif pred_month == 3:
+        df_train, df_test = load_data('5m', [8], [8], failure_type=types, backtrace='1d')
+    else:
+        print("Unkown testing month")
+
+    features = features_generation(4) ## using all groups of features
+    df_test = df_test.loc[:,features]
+    train_X, train_y, test_X, test_y = train_test_data_generation(df_train, df_test,sample_ratio=0.02)
+    best_f1 = 0
+    precision = 0
+    recall = 0
+    fpr = 0
+
+    name = "../model/exp3/exp3/exp3_month_" + str(pred_month) + "_types_" + str(types) + "_interval_" + str(freq)
+    model = pickle.load(open(name,'rb'))
+    y_pred=model.predict_proba(test_X)
+    y_truth = copy.deepcopy(test_y)
+    f1, raw, th = find_best_f1_V2(y_pred,y_truth)
+    if (best_f1 < f1):
+        best_f1 = f1
+        precision = raw[1]
+        recall = raw[2]
+        fpr = raw[3]
+    return best_f1, precision, recall, fpr
+
+def exp3_single_run_from_scratch(freq, pred_month, types):
     if pred_month == 1:
         df_train, df_test = load_data(freq, [1,2,3,4,5], [6], failure_type=types, backtrace='1d')
     elif pred_month == 2:
@@ -535,6 +639,40 @@ def exp3_main():
     return res_df
 
 def exp4_single_run(pred_month, types):
+    #print(len(features), pred_month, types)
+    if pred_month == 1:
+        df_train, df_test = load_data('5m', [6], [6], failure_type=types, backtrace='1d')
+    elif pred_month == 2:
+        df_train, df_test = load_data('5m', [7], [7], failure_type=types, backtrace='1d')
+    elif pred_month == 3:
+        df_train, df_test = load_data('5m', [8], [8], failure_type=types, backtrace='1d')
+    else:
+        print("Unkown testing month")
+
+    features = features_generation(4) ## using all groups of features
+    df_test = df_test.loc[:,features]
+    train_X, train_y, test_X, test_y = train_test_data_generation(df_train, df_test,sample_ratio=0.02)
+    best_f1 = 0
+    precision = 0
+    recall = 0
+    fpr = 0
+    tp_useless = 0
+    tp_useful = 0
+
+    name = "../model/exp4/exp4/exp4_month_" + str(pred_month) + "_types_" + str(types)
+    model = pickle.load(open(name,'rb'))
+    y_pred=model.predict_proba(test_X)
+    y_truth = copy.deepcopy(test_y)
+    f1, raw, th = find_best_f1_V2(y_pred,y_truth)
+    if (best_f1 < f1):
+        best_f1 = f1
+        precision = raw[1]
+        recall = raw[2]
+        fpr = raw[3]
+        tp_useless, tp_useful = evaluation_time(y_pred,y_truth,th)
+    return best_f1, precision, recall, fpr, tp_useless, tp_useful
+
+def exp4_single_run_from_scratch(pred_month, types):
     #print(len(features), pred_month, types)
     if pred_month == 1:
         df_train, df_test = load_data('5m', [1,2,3,4,5], [6], failure_type=types, backtrace='1d')
@@ -593,7 +731,7 @@ def exp4_main():
 if __name__ == '__main__':
     import warnings
     warnings.filterwarnings('ignore')
-    
+
     try:
         os.mkdir("result/")
     except Exception as e:
@@ -601,8 +739,8 @@ if __name__ == '__main__':
 
     exp1_main().to_csv('./result/exp1.csv') ## Experiments for Finding 11
 
-    exp2_main().to_csv('./result/exp2.csv') ## Experiments for Finding 12
+    #exp2_main().to_csv('./result/exp2.csv') ## Experiments for Finding 12
 
-    exp3_main().to_csv('./result/exp3.csv') ## Experiments for Finding 13
+    #exp3_main().to_csv('./result/exp3.csv') ## Experiments for Finding 13
 
-    exp4_main().to_csv('./result/exp4.csv') ## Experiments for Finding 14
+    #exp4_main().to_csv('./result/exp4.csv') ## Experiments for Finding 14
