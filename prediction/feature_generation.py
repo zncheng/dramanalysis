@@ -525,7 +525,7 @@ def one_hot_encoding_features(df):
     for model in ['A1','A2','B1','B2','B3','C1','C2']:
         model_set = static_df[static_df['DRAM_model'] == model].sid.unique()
         df['model_' + model] = df['sid'].apply(lambda x: 1 if x in model_set else 0)
-    for dimm_num in [8,12,16,18]:
+    for dimm_num in [8,12,16,24]:
         dimm_num_set = static_df[static_df['DIMM_number'] == dimm_num].sid.unique()
         df['dimm_num_' + str(dimm_num)] = df['sid'].apply(lambda x: 1 if x in dimm_num_set else 0)
     for server in ['M1','M2','M3','M4']:

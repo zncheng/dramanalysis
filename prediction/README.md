@@ -26,7 +26,7 @@ Python 3: please install [numpy](https://numpy.org/), [pandas](https://pandas.py
 	+ including the results for four different experiments
 + One can also build the models from scratch by:
   + first, genearate features for all eight months
-  + then, in the main function of each exp, used the name with suffix `_from_scratch`
+  + then, in the main function of each experiment, used the function with suffix `_from_scratch` in function name 
 
 ## Functions for Training-testing experiments
 + `exp1_main`: output the precision, recall, and F1-socre when we use different groups of features for predictions in Finding 11

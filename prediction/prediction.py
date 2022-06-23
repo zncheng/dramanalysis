@@ -739,8 +739,8 @@ if __name__ == '__main__':
 
     exp1_main().to_csv('./result/exp1.csv') ## Experiments for Finding 11
 
-    #exp2_main().to_csv('./result/exp2.csv') ## Experiments for Finding 12
+    exp2_main().to_csv('./result/exp2.csv') ## Experiments for Finding 12
 
-    #exp3_main().to_csv('./result/exp3.csv') ## Experiments for Finding 13
+    exp3_main().to_csv('./result/exp3.csv') ## Experiments for Finding 13
 
-    #exp4_main().to_csv('./result/exp4.csv') ## Experiments for Finding 14
+    exp4_main().to_csv('./result/exp4.csv') ## Experiments for Finding 14
