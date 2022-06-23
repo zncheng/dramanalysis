@@ -3,6 +3,7 @@ The source code implement our proposed server failure prediction workflow, inclu
 
 ## Prerequisite
 Python 3: please install [numpy](https://numpy.org/), [pandas](https://pandas.pydata.org/), [joblib](https://joblib.readthedocs.io/en/latest/), [sklearn](https://scikit-learn.org/stable/), [imblearn](https://imbalanced-learn.org/stable/), and [lightgbm](https://lightgbm.readthedocs.io/en/latest/) 
+	+ `pip3 install -r requirement.txt`
 
 ## Usage
 + Assume the data is stored under `../data/`

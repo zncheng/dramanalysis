@@ -3,6 +3,7 @@ We use the scripts to analyze the predictability of server failures due to DRAM 
 
 ## Prerequisite
 Python 3: please install [numpy](https://numpy.org/) and [pandas](https://pandas.pydata.org/)
+	+ `pip3 install -r requirement.txt`
 
 ## Usage
 + The raw data is stored under `../data/`
