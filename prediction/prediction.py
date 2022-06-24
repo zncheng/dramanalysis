@@ -308,7 +308,7 @@ def exp1_single_run(features, pred_month, types):
       feature_grp_num = 1
     elif len(features) == 22:
       feature_grp_num = 2
-    elif len(features) == 31:
+    elif len(features) == 40:
       feature_grp_num = 3
     else:
       feature_grp_num = 4
