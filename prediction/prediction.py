@@ -82,6 +82,7 @@ def sampling(train_df, ratio = 0.02):
         y = train_df[train_df.columns[-1]]
         return X, y
     sample_func = RandomUnderSampler(ratio, random_state=42)  # random downsampling
+    train_df=train_df.reset_index(drop=True)
     train_df['sample_index'] = train_df.index
     X = train_df.loc[:,['sample_index']]
     y = train_df.loc[:,['class']]
