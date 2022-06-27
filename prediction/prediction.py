@@ -536,7 +536,7 @@ def run_parallel_exp2(lst):
         typ = lst[1]
         month = lst[2]
         f1, precision, recall, fpr = exp2_single_run(model,month,typ)
-        print(model, typ, month, f1, precision, recall, fpr)
+        #print(model, typ, month, f1, precision, recall, fpr)
         return model, typ, month, f1, precision, recall, fpr
 
 def exp2_main():
@@ -576,7 +576,7 @@ def exp3_single_run(freq, pred_month, types):
     model = pickle.load(open(name,'rb'))
     y_pred=model.predict_proba(test_X)
     y_truth = copy.deepcopy(test_y)
-    f1, raw, th = find_best_f1_V2(y_pred,y_truth)
+    f1, raw, th = find_best_f1_V2(y_pred,y_truth,pred_month,types)
     if (best_f1 < f1):
         best_f1 = f1
         precision = raw[1]
@@ -664,7 +664,7 @@ def exp4_single_run(pred_month, types):
     model = pickle.load(open(name,'rb'))
     y_pred=model.predict_proba(test_X)
     y_truth = copy.deepcopy(test_y)
-    f1, raw, th = find_best_f1_V2(y_pred,y_truth)
+    f1, raw, th = find_best_f1(y_pred,y_truth)
     if (best_f1 < f1):
         best_f1 = f1
         precision = raw[1]
@@ -714,7 +714,7 @@ def exp4_single_run_from_scratch(pred_month, types):
 def run_parallel_exp4(lst):
         typ = lst[0]
         month = lst[1]
-        f1, precision, recall, fpr, tp_useless, tp_useful  = exp5_single_run(month,typ)
+        f1, precision, recall, fpr, tp_useless, tp_useful  = exp4_single_run(month,typ)
         return typ, month, f1, precision, recall, fpr, tp_useless, tp_useful
 
 def exp4_main():
@@ -723,7 +723,7 @@ def exp4_main():
         for month in [1,2,3]:
             lst.append([typ, month])
     pool = Pool(processes=len(lst))
-    ret=pool.map(run_parallel_exp5,lst)
+    ret=pool.map(run_parallel_exp4,lst)
     res_df=pd.DataFrame(ret).rename(columns={0:'failure_type',1:'month',2:'F1-score',3:'Precision',4:'Recall',5:'FPR',6:'tp_useless',7:'tp_useful'})
     result = res_df.groupby('failure_type').mean().drop(columns={'month'})
     print(result)
